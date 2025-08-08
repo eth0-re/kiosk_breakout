@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Breakout</title>
+    <link rel="stylesheet" href="lib/bootstrap.css">
+    <script src="lib/bootstrap.bundle.js"></script>
+    <script src="lib/jquery.js"></script>
+    <script src="lib/uris.js"></script>
+    
+    <style>
+        /* Touch-friendly improvements */
+        body {
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .accordion-button {
+            font-size: 18px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .accordion-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .accordion-body {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 12px 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn {
+            font-size: 16px;
+            padding: 15px 25px;
+            margin: 8px 5px;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            min-height: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+        
+        .btn-sm {
+            font-size: 14px;
+            padding: 12px 20px;
+            min-height: 45px;
+        }
+        
+        .form-control {
+            font-size: 16px;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group .btn {
+            margin: 0;
+        }
+        
+        .uri-button {
+            font-size: 12px;
+            padding: 10px 15px;
+            margin: 5px;
+            min-height: 40px;
+        }
+        
+        .copyable-links .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .container-fluid {
+            padding: 0;
+        }
+        
+        .row {
+            margin: 0 -5px;
+        }
+        
+        .col, .col-6, .col-sm-4, .col-md-3, .col-lg-3, .col-xl-2 {
+            padding: 0 5px;
+        }
+        
+        /* Hidden file input for upload dialog */
+        #fileInput {
+            display: none;
+        }
+        
+        /* Modal improvements */
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            border-radius: 15px 15px 0 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .btn {
+                font-size: 14px;
+                padding: 12px 20px;
+                min-height: 45px;
+            }
+            
+            .accordion-button {
+                font-size: 16px;
+                padding: 15px;
+            }
+            
+            .accordion-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hidden file input for upload dialog -->
+    <input type="file" id="fileInput" multiple>
+
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              📁 Common Dialogs
+            </button>
+          </h2>
+          <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <h4>📂 File Operations</h4>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="openFileUploadDialog()">
+                                📤 Open File Upload Dialog
+                            </button>
+                            <button class="btn btn-primary" onclick="openPrintDialog()">
+                                🖨️ Open Print Dialog
+                            </button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                🔐 Open Save Password Dialog
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <h4>🌐 Browser Operations</h4>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="openPopupBlocker()">
+                                🪟 Trigger Popup Blocker
+                            </button>
+                            <button class="btn btn-primary" onclick="openShare()">
+                                📤 Share Context
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h4>⌨️ Keyboard Shortcuts</h4>
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><strong>Ctrl+P:</strong> Print</li>
+                                    <li><strong>Ctrl+O:</strong> Open</li>
+                                    <li><strong>Ctrl+S:</strong> Save</li>
+                                    <li><strong>Ctrl+J:</strong> Downloads (Chrome)</li>
+                                    <li><strong>Ctrl+Shift+Y:</strong> Downloads (Firefox)</li>
+                                </ul>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><strong>Ctrl+Shift+P:</strong> Launch Private</li>
+                                    <li><strong>Ctrl+Shift+O:</strong> Library</li>
+                                    <li><strong>Ctrl+Shift+J:</strong> Browser Console/Dev</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+              📄 File Downloads
+            </button>
+          </h2>
+          <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+              <h4>📄 Generate files to be downloaded</h4>
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <button class="btn btn-primary w-100" onclick="openDataUrl()">
+                            📄 Open Inline PDF
+                        </button>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="input-group mb-3">
+                            <input type="text" id="extension" class="form-control" placeholder="txt" value="txt">
+                            <button class="btn btn-primary" onclick="download('a')">Generate Text File</button>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-secondary" onclick="setExtension('txt')">.txt</button>
+                            <button class="btn btn-secondary" onclick="setExtension('pdf')">.pdf</button>
+                            <button class="btn btn-secondary" onclick="setExtension('docx')">.docx</button>
+                            <button class="btn btn-secondary" onclick="setExtension('xlsx')">.xlsx</button>
+                            <button class="btn btn-secondary" onclick="setExtension('pptx')">.pptx</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingThree">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+              🔗 Copyable Links
+            </button>
+          </h2>
+          <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+              <div class="row copyable-links">
+                <div class="col-12">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="file:///">
+                        <button class="btn btn-secondary copy-button">Copy</button>
+                        <a class="btn btn-primary" target="_blank" href="file:///" role="button">Link</a>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="file://C:\\">
+                        <button class="btn btn-secondary copy-button">Copy</button>
+                        <a class="btn btn-primary" target="_blank" href="file://C:\\" role="button">Link</a>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFour">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                🎥 Trigger User Media (Screen Share/Webcam)
+              </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="mediapopup()">
+                        📹 Get User Media
+                    </button>
+                    <button class="btn btn-primary" onclick="navigator.mediaDevices.getDisplayMedia()">
+                        🖥️ Request Screen Share
+                    </button>
+                </div>
+              </div>
+            </div>
+        </div>
+        
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFive">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                🔗 Clickable URIs
+              </button>
+            </h2>
+            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                <h4>URIs From Browser</h4>
+                <div class="container-fluid">
+                    <div class="row uri-list">
+                    </div>
+                </div>
+              </div>
+            </div>
+        </div>
+      
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingSix">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+            🌐 Public Links
+          </button>
+        </h2>
+        <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#accordionExample">
+          <div class="accordion-body">
+            <h4>Internet Links</h4>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="javascript:window.open('https://www.google.com', '_blank');">
+                                🔍 Google
+                            </button>
+                            <button class="btn btn-primary" onclick="javascript:window.open('https://addons.mozilla.org/en-US/firefox/', '_blank');">
+                                🦊 Firefox Addons
+                            </button>
+                            <button class="btn btn-primary" onclick="javascript:window.open('https://chrome.google.com/webstore/category/extensions', '_blank');">
+                                🟢 Chrome Web Store
+                            </button>
+                            <button class="btn btn-primary" onclick="javascript:window.open('https://microsoftedge.microsoft.com/addons/Microsoft-Edge-Extensions-Home', '_blank');">
+                                🔵 Edge Addons
+                            </button>
+                            <button class="btn btn-primary" onclick="javascript:window.open('https://expired.badssl.com/', '_blank');">
+                                ⚠️ Invalid Certificate
+                            </button>
+                            <button class="btn btn-primary" onclick="javascript:window.open('https://www.eicar.org/download/eicar.com', '_blank');">
+                                🦠 EICAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- Sign-in Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">🔐 Login Form</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p> Try submitting credentials and breaking out using the <strong>save password</strong> browser dialog.</p>
+                <p> Alternatively, save credentials, reload the page and break-out from the <strong>view saved</strong> dialog when pressing on the input field</p>
+                <form>
+                    <div class="mb-3">
+                      <label for="exampleInputEmail1" class="form-label">Email address</label>
+                      <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+                      <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="exampleInputPassword1" class="form-label">Password</label>
+                      <input type="password" class="form-control" id="exampleInputPassword1">
+                    </div>
+                    <div class="mb-3 form-check">
+                      <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                      <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                  </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <script>
+        console.log(uris);
+        //For each URI in the uris array, create a column with a button
+        //that has the URI as the text
+        uris.forEach(function(uri) {
+            var col = document.createElement("div");
+            col.className = "col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2 mb-2";
+            var btn = document.createElement("button");
+            btn.className = "btn btn-secondary btn-sm w-100 uri-button";
+            btn.innerHTML = uri;
+            col.appendChild(btn);
+            document.querySelector(".uri-list").appendChild(col);
+        });
+
+        // Add a click event listener to each button
+        document.querySelectorAll('.uri-button').forEach(function(btn) {
+            console.log("triggered")
+            // When the button is clicked, disable it
+            btn.addEventListener("click", function() {
+                // Disable button
+                btn.disabled = true;
+                btn.classList.add("disabled");
+
+                // Open URI in new window
+                window.open(btn.textContent + "://a", "_blank");
+            });
+        });
+
+        function mediapopup() {
+            var constraints = {
+                video: true,
+                audio: true
+            }
+            navigator.mediaDevices.getUserMedia(constraints).then(function success(stream) {
+                /* do stuff */
+            }).catch(function(err) {
+                //log to console first 
+                console.log(err); /* handle the error */
+                if (err.name == "NotFoundError" || err.name == "DevicesNotFoundError") {
+                    //required track is missing 
+                } else if (err.name == "NotReadableError" || err.name == "TrackStartError") {
+                    //webcam or mic are already in use 
+                } else if (err.name == "OverconstrainedError" || err.name == "ConstraintNotSatisfiedError") {
+                    //constraints can not be satisfied by avb. devices 
+                } else if (err.name == "NotAllowedError" || err.name == "PermissionDeniedError") {
+                    //permission denied in browser 
+                } else if (err.name == "TypeError" || err.name == "TypeError") {
+                    //empty constraints object 
+                } else {
+                    //other errors 
+                }
+            });
+        }
+
+        async function startCapture(displayMediaOptions) {
+            let captureStream = null;
+
+            try {
+                captureStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+            } catch (err) {
+                console.error(`Error: ${err}`);
+            }
+            return captureStream;
+        }
+
+        function openFileUploadDialog() {
+            // Create a file input element if it doesn't exist
+            var fileInput = document.getElementById('fileInput');
+            if (!fileInput) {
+                fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.id = 'fileInput';
+                fileInput.style.display = 'none';
+                document.body.appendChild(fileInput);
+            }
+            
+            // Trigger the file input click
+            fileInput.click();
+        }
+
+        function openPrintDialog() {
+            window.print();
+        }
+
+        function download(text) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            // Get filename from extension textbox
+            var filename = "a." + document.getElementById("extension").value;
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        }
+
+        function serveTextFile(text, downloadAs) {
+            const blob = new Blob([text], { type: "text/plain"});
+            const url = URL.createObjectURL(blob);
+
+            const domNode = document.createElement('a');
+            downloadAs && (domNode.download = downloadAs);
+            !downloadAs && (domNode.target = "_blank");
+            domNode.href = url;
+            domNode.style.display = 'none';
+            document.body.appendChild(domNode);
+            domNode.click();
+            document.body.removeChild(domNode);
+        }
+
+        function openDataUrl() {
+            const base64ImageData = 'data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAw/nIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0/ncmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg==';
+            const contentType = 'application/pdf';
+
+            const byteCharacters = atob(base64ImageData.substr(`data:${contentType};base64,`.length));
+            const byteArrays = [];
+
+            for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
+                const slice = byteCharacters.slice(offset, offset + 1024);
+
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+
+                const byteArray = new Uint8Array(byteNumbers);
+
+                byteArrays.push(byteArray);
+            }
+            const blob = new Blob(byteArrays, {type: contentType});
+            const blobUrl = URL.createObjectURL(blob);
+
+            window.open(blobUrl, '_blank');
+        }
+
+        function openPopupBlocker() {
+            window.open("https://www.google.com", "_blank");
+            window.open("https://www.google.com", "_blank");
+            window.open("https://www.google.com", "_blank");
+            window.open("https://www.google.com", "_blank");
+            window.open("https://www.google.com", "_blank");
+        }
+
+        function setExtension(ext) {
+            // Set the value of the extension textbox to the ext provided
+            document.querySelector("#extension").value = ext;
+        }
+
+        function openShare() {
+            navigator.share({
+                title: 'Web Fundamentals',
+                text: 'Check out Web Fundamentals — it rocks!',
+                url: 'https://developers.google.com/web',
+            })
+            .then(() => console.log('Successful share'))
+            .catch((error) => console.log('Error sharing', error));
+        }
+
+        // Function to copy the text in the textbox to the clipboard
+        $('.copy-button').on('click', function(event) {
+            // Get the value of the sibling input box
+            var text = $(this).siblings('input').val();
+            // Send the text to the clipboard
+            navigator.clipboard.writeText(text).then(function() {
+                // If successful, change the button text to "Copied"
+                $(event.target).text("Copied");
+                setTimeout(function() {
+                    $(event.target).text("Copy");
+                }, 2000);
+            }, function(err) {
+                // If unsuccessful, log the error to the console
+                console.error('Async: Could not copy text: ', err);
+            });
+        });
+    </script>
+    
+</body>
+</html>
